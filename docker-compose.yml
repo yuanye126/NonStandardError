@@ -1,0 +1,73 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: nse
+      POSTGRES_PASSWORD: nse
+      POSTGRES_DB: nse
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U nse"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  backend:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://nse:nse@db:5432/nse
+      REDIS_URL: redis://redis:6379/0
+      UPLOAD_DIR: /data/uploads
+      OUTPUT_DIR: /data/outputs
+    volumes:
+      - appdata:/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/backend/Dockerfile
+    command: rq worker --url redis://redis:6379/0 nse
+    environment:
+      DATABASE_URL: postgresql://nse:nse@db:5432/nse
+      REDIS_URL: redis://redis:6379/0
+      UPLOAD_DIR: /data/uploads
+      OUTPUT_DIR: /data/outputs
+    volumes:
+      - appdata:/data
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+
+  frontend:
+    build:
+      context: apps/frontend
+      dockerfile: Dockerfile
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+
+volumes:
+  pgdata:
+  appdata:

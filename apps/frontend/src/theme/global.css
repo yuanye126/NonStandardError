@@ -1,0 +1,253 @@
+/* Academic typographic theme — no gradients, no shadows, no dashboard chrome */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --serif: 'EB Garamond', 'Linux Libertine', Georgia, 'Times New Roman', serif;
+  --mono: 'Source Code Pro', 'Courier New', monospace;
+
+  --ink: #111111;
+  --paper: #faf9f6;
+  --rule: #999999;
+  --rule-light: #cccccc;
+  --accent: #2c3e7a;      /* deep blue — used sparingly */
+  --accent-faint: rgba(44,62,122,0.08);
+  --warn: #7a2c2c;        /* oxblood — warnings only */
+  --muted: #555555;
+
+  --content-width: 760px;
+  --margin-h: 2rem;
+
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+body {
+  font-family: var(--serif);
+  background: var(--paper);
+  color: var(--ink);
+  min-height: 100vh;
+}
+
+/* ── Layout shell ─────────────────────────────────────────── */
+.page {
+  max-width: var(--content-width);
+  margin: 0 auto;
+  padding: 3rem var(--margin-h) 6rem;
+}
+
+/* ── Typography ───────────────────────────────────────────── */
+h1 { font-size: 1.6rem; font-weight: 500; letter-spacing: -0.01em; margin-bottom: 0.5rem; }
+h2 { font-size: 1.25rem; font-weight: 500; margin-top: 2.5rem; margin-bottom: 0.75rem; }
+h3 { font-size: 1rem; font-weight: 600; margin-top: 1.5rem; margin-bottom: 0.5rem; }
+p  { margin-bottom: 0.75rem; }
+small, .small { font-size: 0.82rem; color: var(--muted); }
+
+a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+a:hover { color: var(--ink); }
+
+code, pre, .mono { font-family: var(--mono); font-size: 0.84em; }
+
+/* ── Step indicator ───────────────────────────────────────── */
+.step-bar {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: 2.5rem;
+  padding-bottom: 0.75rem;
+}
+.step-bar__item {
+  font-size: 0.82rem;
+  color: var(--muted);
+  padding-right: 1.5rem;
+  white-space: nowrap;
+}
+.step-bar__item--active { color: var(--ink); font-weight: 600; }
+.step-bar__item--done   { color: var(--accent); }
+
+/* ── Booktabs tables ──────────────────────────────────────── */
+table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 1.25rem 0 0.25rem;
+  font-size: 0.9rem;
+}
+thead tr th {
+  font-weight: 600;
+  padding: 0.35rem 0.6rem;
+  border-top: 1.5px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  text-align: left;
+}
+thead tr th.num { text-align: right; }
+tbody tr td {
+  padding: 0.3rem 0.6rem;
+}
+tbody tr td.num { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr:last-child td { border-bottom: 1.5px solid var(--ink); }
+.table-note {
+  font-size: 0.78rem;
+  color: var(--muted);
+  margin-top: 0.35rem;
+  font-style: italic;
+}
+
+/* ── Figures ──────────────────────────────────────────────── */
+figure {
+  margin: 1.75rem 0 0.5rem;
+}
+figcaption {
+  font-size: 0.82rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+}
+
+/* ── Forms ────────────────────────────────────────────────── */
+label { display: block; font-size: 0.9rem; margin-bottom: 0.25rem; }
+input[type="text"],
+input[type="number"],
+select {
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  padding: 0.35rem 0.5rem;
+  width: 100%;
+  outline: none;
+  color: var(--ink);
+}
+input:focus, select:focus { border-color: var(--accent); }
+
+.checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+}
+.checkbox-row input[type="checkbox"] { width: auto; accent-color: var(--accent); }
+
+/* ── Buttons ──────────────────────────────────────────────── */
+button, .btn {
+  font-family: var(--serif);
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: 1px solid var(--ink);
+  background: transparent;
+  color: var(--ink);
+  padding: 0.4rem 1rem;
+  transition: background 0.1s;
+}
+button:hover, .btn:hover { background: var(--accent-faint); }
+button:disabled, .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-primary:hover { background: var(--accent); border-color: var(--accent); }
+
+/* ── Upload drop zone ─────────────────────────────────────── */
+.dropzone {
+  border: 1px dashed var(--rule);
+  padding: 2.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.dropzone:hover, .dropzone--active {
+  border-color: var(--accent);
+  background: var(--accent-faint);
+}
+.dropzone__label { font-size: 0.9rem; color: var(--muted); margin-top: 0.5rem; }
+
+/* ── Badges / tags ────────────────────────────────────────── */
+.badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-family: var(--mono);
+  border: 1px solid var(--rule);
+  padding: 0.1rem 0.4rem;
+  color: var(--muted);
+  vertical-align: middle;
+}
+.badge--warn { border-color: var(--warn); color: var(--warn); }
+.badge--info { border-color: var(--accent); color: var(--accent); }
+
+/* ── Live spec count bar ──────────────────────────────────── */
+.spec-bar {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+  padding: 0.6rem 0;
+  border-top: 1px solid var(--rule-light);
+  border-bottom: 1px solid var(--rule-light);
+  margin: 1rem 0 1.5rem;
+  font-size: 0.88rem;
+  font-family: var(--mono);
+}
+.spec-bar__count { font-weight: 600; font-size: 1.1rem; }
+
+/* ── Role assignment rows ─────────────────────────────────── */
+.role-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 1rem 0;
+}
+
+/* ── Progress bar ─────────────────────────────────────────── */
+.progress-track {
+  width: 100%;
+  height: 2px;
+  background: var(--rule-light);
+  margin: 1rem 0;
+}
+.progress-fill {
+  height: 100%;
+  background: var(--accent);
+  transition: width 0.5s;
+}
+
+/* ── Sticky export button ─────────────────────────────────── */
+.sticky-export {
+  position: sticky;
+  bottom: 1.5rem;
+  display: flex;
+  justify-content: flex-end;
+  pointer-events: none;
+}
+.sticky-export button {
+  pointer-events: all;
+  background: var(--ink);
+  color: var(--paper);
+  border: none;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.88rem;
+}
+
+/* ── SVG chart styles ─────────────────────────────────────── */
+.chart-axis text  { font-family: var(--serif); font-size: 11px; fill: var(--ink); }
+.chart-axis line,
+.chart-axis path  { stroke: var(--rule); }
+.chart-ci         { fill: none; stroke: var(--rule-light); stroke-width: 0.8; }
+.chart-dot        { fill: var(--ink); }
+.chart-dot--sig   { fill: var(--accent); }
+.chart-dot--neg   { fill: var(--muted); }
+
+/* ── Horizontal rule ──────────────────────────────────────── */
+hr { border: none; border-top: 1px solid var(--rule-light); margin: 2rem 0; }
+
+/* ── Utility ──────────────────────────────────────────────── */
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mt-3 { margin-top: 1.5rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.row  { display: flex; align-items: baseline; gap: 0.75rem; }
+.col  { display: flex; flex-direction: column; gap: 0.25rem; }
+.warn-text { color: var(--warn); font-size: 0.85rem; }
+.muted { color: var(--muted); }

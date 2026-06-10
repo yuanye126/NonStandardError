@@ -1,0 +1,34 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+*.egg
+pip-wheel-metadata/
+
+# Engine outputs
+*.parquet
+*.db
+output/
+results/
+
+# Uploads / temp data (never commit user data)
+apps/backend/nse_dev.db
+apps/backend/*.db
+/tmp/
+
+# Node
+node_modules/
+apps/frontend/dist/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
