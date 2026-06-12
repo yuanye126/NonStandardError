@@ -1,8 +1,15 @@
-/** Prefix every /api/... fetch with the configured base URL. */
 declare const __API_BASE__: string
 
+// VITE_API_BASE baked in at build time; falls back to the Render backend URL
+// when the env var was not set before the Vercel build.
+const _baked: string = typeof __API_BASE__ !== 'undefined' ? __API_BASE__ : ''
+
 export const API_BASE: string =
-  typeof __API_BASE__ !== 'undefined' ? __API_BASE__ : ''
+  _baked !== ''
+    ? _baked
+    : window.location.hostname === 'localhost'
+      ? ''                                        // dev: Vite proxy handles /api/*
+      : 'https://nse-backend.onrender.com'        // production fallback
 
 export function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   return fetch(`${API_BASE}${path}`, init)
