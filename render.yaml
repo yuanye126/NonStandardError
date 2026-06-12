@@ -5,7 +5,7 @@ services:
     runtime: python
     rootDir: apps/backend
     buildCommand: |
-      pip install -e $RENDER_PROJECT_DIR/packages/nse_engine
+      pip install -e ../../packages/nse_engine
       pip install -r requirements.txt
     startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
     envVars:
@@ -31,7 +31,7 @@ services:
     runtime: python
     rootDir: apps/backend
     buildCommand: |
-      pip install -e $RENDER_PROJECT_DIR/packages/nse_engine
+      pip install -e ../../packages/nse_engine
       pip install -r requirements.txt
     startCommand: rq worker --url $REDIS_URL nse
     envVars:
@@ -51,17 +51,25 @@ services:
       - key: PYTHONPATH
         value: /opt/render/project/src/packages/nse_engine
 
-  # Frontend (static site)
-  - type: web
+  # Redis (must be in services, not databases)
+  - type: redis
+    name: nse-redis
+    plan: free
+    maxmemoryPolicy: noeviction
+
+  # Frontend static site
+  # VITE_API_BASE bakes the backend URL into the JS bundle at build time.
+  # Render static sites cannot rewrite to external domains, so we skip the
+  # /api/* rewrite and let the browser call the backend directly (CORS is open).
+  - type: static
     name: nse-frontend
-    runtime: static
     rootDir: apps/frontend
     buildCommand: npm install && npm run build
     staticPublishPath: dist
+    envVars:
+      - key: VITE_API_BASE
+        value: https://nse-backend.onrender.com
     routes:
-      - type: rewrite
-        source: /api/*
-        destination: https://nse-backend.onrender.com/api/:splat
       - type: rewrite
         source: /*
         destination: /index.html
@@ -71,7 +79,3 @@ databases:
     databaseName: nse
     user: nse
     plan: free
-
-  - name: nse-redis
-    plan: free
-    type: redis
