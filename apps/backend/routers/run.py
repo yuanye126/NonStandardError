@@ -19,8 +19,12 @@ from jobs import run_multiverse_job
 
 router = APIRouter()
 
-REDIS_URL = os.environ.get("REDIS_URL", "")   # empty = no Redis, use threading
+REDIS_URL = os.environ.get("REDIS_URL", "")
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/tmp/nse_outputs")
+
+# Must be explicitly set to "true" to use the RQ queue + worker.
+# Without this, jobs always run in a background thread — no worker needed.
+USE_WORKERS = os.environ.get("USE_WORKERS", "false").lower() == "true"
 
 _redis_conn: redis.Redis | None = None
 _queue: rq.Queue | None = None
@@ -32,21 +36,6 @@ def _get_queue() -> rq.Queue:
         _redis_conn = redis.from_url(REDIS_URL)
         _queue = rq.Queue("nse", connection=_redis_conn, default_timeout=600)
     return _queue
-
-
-def _use_redis() -> bool:
-    """True only when REDIS_URL is set AND Redis is actually reachable."""
-    if not REDIS_URL:
-        return False
-    try:
-        r = redis.from_url(REDIS_URL)
-        r.ping()
-        return True
-    except Exception:
-        return False
-
-
-_REDIS_AVAILABLE: bool = _use_redis()
 
 
 @router.post("/run")
@@ -71,7 +60,7 @@ async def start_run(body: dict, db: Session = Depends(get_db)):
     db.add(run_rec)
     db.commit()
 
-    if _REDIS_AVAILABLE:
+    if USE_WORKERS:
         _get_queue().enqueue(
             run_multiverse_job,
             run_id,
