@@ -56,6 +56,7 @@ services:
     name: nse-redis
     plan: free
     maxmemoryPolicy: noeviction
+    ipAllowList: []   # internal only — backend and worker access via private network
 
   # Frontend static site
   # VITE_API_BASE bakes the backend URL into the JS bundle at build time.
