@@ -9,7 +9,7 @@ export const API_BASE: string =
     ? _baked
     : window.location.hostname === 'localhost'
       ? ''
-      : 'https://nse-backend.onrender.com'
+      : 'https://nse-backend-k9ja.onrender.com'
 
 if (window.location.hostname !== 'localhost') {
   console.info('[NSE] API_BASE =', API_BASE || '(same-origin)')
