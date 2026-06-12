@@ -3,6 +3,7 @@ services:
   - type: web
     name: nse-backend
     runtime: python
+    plan: free
     rootDir: apps/backend
     buildCommand: |
       pip install -e ../../packages/nse_engine
@@ -29,6 +30,7 @@ services:
   - type: worker
     name: nse-worker
     runtime: python
+    plan: free
     rootDir: apps/backend
     buildCommand: |
       pip install -e ../../packages/nse_engine
