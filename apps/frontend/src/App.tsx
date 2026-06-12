@@ -26,6 +26,19 @@ export default function App() {
         <Route path="/configure" element={<ConfigurePage />} />
         <Route path="/results" element={<ResultsPage />} />
       </Routes>
+
+      <hr style={{ marginTop: '3rem' }} />
+      <div style={{ marginTop: '1rem', marginBottom: '2rem' }}>
+        <p className="small muted" style={{ marginBottom: '0.4rem' }}>
+          <strong>Reference paper</strong> — Non-Standard Errors in Entrepreneurial Finance
+        </p>
+        <iframe
+          src="https://drive.google.com/file/d/1MyBsm0AGPTR0RNFLc_Ajt8XUFiXmWj3a/preview"
+          style={{ width: '100%', height: '720px', border: '1px solid var(--rule)' }}
+          allow="autoplay"
+          title="Non-Standard Errors in Entrepreneurial Finance"
+        />
+      </div>
     </div>
   )
 }
