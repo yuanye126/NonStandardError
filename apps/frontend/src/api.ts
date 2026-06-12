@@ -8,8 +8,12 @@ export const API_BASE: string =
   _baked !== ''
     ? _baked
     : window.location.hostname === 'localhost'
-      ? ''                                        // dev: Vite proxy handles /api/*
-      : 'https://nse-backend.onrender.com'        // production fallback
+      ? ''
+      : 'https://nse-backend.onrender.com'
+
+if (window.location.hostname !== 'localhost') {
+  console.info('[NSE] API_BASE =', API_BASE || '(same-origin)')
+}
 
 export function apiFetch(path: string, init?: RequestInit): Promise<Response> {
   return fetch(`${API_BASE}${path}`, init)
