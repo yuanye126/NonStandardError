@@ -19,7 +19,7 @@ from jobs import run_multiverse_job
 
 router = APIRouter()
 
-REDIS_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+REDIS_URL = os.environ.get("REDIS_URL", "")   # empty = no Redis, use threading
 OUTPUT_DIR = os.environ.get("OUTPUT_DIR", "/tmp/nse_outputs")
 
 _redis_conn: redis.Redis | None = None
@@ -32,6 +32,21 @@ def _get_queue() -> rq.Queue:
         _redis_conn = redis.from_url(REDIS_URL)
         _queue = rq.Queue("nse", connection=_redis_conn, default_timeout=600)
     return _queue
+
+
+def _use_redis() -> bool:
+    """True only when REDIS_URL is set AND Redis is actually reachable."""
+    if not REDIS_URL:
+        return False
+    try:
+        r = redis.from_url(REDIS_URL)
+        r.ping()
+        return True
+    except Exception:
+        return False
+
+
+_REDIS_AVAILABLE: bool = _use_redis()
 
 
 @router.post("/run")
@@ -56,21 +71,21 @@ async def start_run(body: dict, db: Session = Depends(get_db)):
     db.add(run_rec)
     db.commit()
 
-    try:
-        queue = _get_queue()
-        queue.enqueue(
+    if _REDIS_AVAILABLE:
+        _get_queue().enqueue(
             run_multiverse_job,
             run_id,
             config_dict,
             OUTPUT_DIR,
             job_id=run_id,
         )
-    except Exception as exc:
-        # Fallback: run synchronously if Redis unavailable (dev mode)
+    else:
         import threading
-        def _sync():
-            run_multiverse_job(run_id, config_dict, OUTPUT_DIR)
-        threading.Thread(target=_sync, daemon=True).start()
+        threading.Thread(
+            target=run_multiverse_job,
+            args=(run_id, config_dict, OUTPUT_DIR),
+            daemon=True,
+        ).start()
 
     return {"run_id": run_id}
 
