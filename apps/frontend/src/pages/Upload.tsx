@@ -1,6 +1,7 @@
 import { useCallback, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { store, UploadResult, ColumnInfo } from '../store'
+import { apiFetch } from '../api'
 
 const MAX_MB = 20
 const MAX_BYTES = MAX_MB * 1024 * 1024
@@ -53,7 +54,7 @@ export default function UploadPage() {
     const form = new FormData()
     form.append('file', file)
     try {
-      const res = await fetch('/api/upload', { method: 'POST', body: form })
+      const res = await apiFetch('/api/upload', { method: 'POST', body: form })
       if (!res.ok) {
         const body = await res.json().catch(() => ({}))
         throw new Error(body.detail ?? `Upload failed (${res.status})`)

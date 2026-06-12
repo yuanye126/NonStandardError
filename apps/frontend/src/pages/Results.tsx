@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { store } from '../store'
+import { apiFetch, API_BASE } from '../api'
 import NseTable from '../components/NseTable'
 import SpecCurve from '../components/SpecCurve'
 import VarianceDecomp from '../components/VarianceDecomp'
@@ -33,13 +34,13 @@ export default function ResultsPage() {
   useEffect(() => {
     pollRef.current = setInterval(async () => {
       try {
-        const res = await fetch(`/api/run/${runId}/status`)
+        const res = await apiFetch(`/api/run/${runId}/status`)
         if (!res.ok) return
         const s: RunStatus = await res.json()
         setStatus(s)
         if (s.state === 'done') {
           clearInterval(pollRef.current!)
-          const rres = await fetch(`/api/results/${runId}`)
+          const rres = await apiFetch(`/api/results/${runId}`)
           if (rres.ok) setResults(await rres.json())
         } else if (s.state === 'failed') {
           clearInterval(pollRef.current!)
@@ -53,7 +54,7 @@ export default function ResultsPage() {
     return () => clearInterval(pollRef.current!)
   }, [runId])
 
-  const downloadExport = () => window.open(`/api/export/${runId}`, '_blank')
+  const downloadExport = () => window.open(`${API_BASE}/api/export/${runId}`, '_blank')
 
   if (error) return (
     <div>

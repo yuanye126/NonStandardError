@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   store, ConfigState, DEFAULT_CONFIG, DEFAULT_DEP_OUTLIER, DEFAULT_FIXED_EFFECTS,
 } from '../store'
+import { apiFetch } from '../api'
 
 interface ValidateResult {
   valid: boolean
@@ -57,7 +58,7 @@ export default function ConfigurePage() {
     setValidating(true)
     try {
       const body = buildRequestBody()
-      const res = await fetch('/api/configure/validate', {
+      const res = await apiFetch('/api/configure/validate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -109,7 +110,7 @@ export default function ConfigurePage() {
     setRunError(null)
     try {
       const body = buildRequestBody()
-      const res = await fetch('/api/run', {
+      const res = await apiFetch('/api/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),

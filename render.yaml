@@ -1,0 +1,77 @@
+services:
+  # FastAPI backend
+  - type: web
+    name: nse-backend
+    runtime: python
+    rootDir: apps/backend
+    buildCommand: |
+      pip install -e $RENDER_PROJECT_DIR/packages/nse_engine
+      pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nse-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: nse-redis
+          type: redis
+          property: connectionString
+      - key: UPLOAD_DIR
+        value: /tmp/nse_uploads
+      - key: OUTPUT_DIR
+        value: /tmp/nse_outputs
+      - key: PYTHONPATH
+        value: /opt/render/project/src/packages/nse_engine
+
+  # Background worker
+  - type: worker
+    name: nse-worker
+    runtime: python
+    rootDir: apps/backend
+    buildCommand: |
+      pip install -e $RENDER_PROJECT_DIR/packages/nse_engine
+      pip install -r requirements.txt
+    startCommand: rq worker --url $REDIS_URL nse
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: nse-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: nse-redis
+          type: redis
+          property: connectionString
+      - key: UPLOAD_DIR
+        value: /tmp/nse_uploads
+      - key: OUTPUT_DIR
+        value: /tmp/nse_outputs
+      - key: PYTHONPATH
+        value: /opt/render/project/src/packages/nse_engine
+
+  # Frontend (static site)
+  - type: web
+    name: nse-frontend
+    runtime: static
+    rootDir: apps/frontend
+    buildCommand: npm install && npm run build
+    staticPublishPath: dist
+    routes:
+      - type: rewrite
+        source: /api/*
+        destination: https://nse-backend.onrender.com/api/:splat
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: nse-db
+    databaseName: nse
+    user: nse
+    plan: free
+
+  - name: nse-redis
+    plan: free
+    type: redis
