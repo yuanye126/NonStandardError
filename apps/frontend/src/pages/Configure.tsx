@@ -103,6 +103,7 @@ export default function ConfigurePage() {
         mode: (validation?.n_specs ?? Infinity) <= 5000 ? 'full' : 'sample',
         sample_size: 5000,
         seed: cfg.seed,
+        max_workers: 1,
       },
       focal_coefficients: roles.required_vars.length ? roles.required_vars : roles.independent.slice(0, 3),
     },

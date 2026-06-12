@@ -137,31 +137,42 @@ def run_multiverse(
         sampled = True
     n_run = len(all_specs)
 
-    # 5. Serialize data once (avoid repeated pickling)
+    # 5. Serialize data once (avoid repeated pickling in multi-process mode)
     import io
     buf = io.BytesIO()
     data.to_parquet(buf, index=False)
     data_bytes = buf.getvalue()
     config_dict = config.to_dict()
 
-    # 6. Run in parallel
+    # 6. Run specs — sequential when max_workers=1 (no subprocess fork, memory-safe),
+    #    parallel ProcessPoolExecutor otherwise.
     max_workers = config.run.max_workers or max(1, (os.cpu_count() or 2) - 1)
     failure_stats: Counter = Counter()
     rows: list[dict] = []
 
-    with ProcessPoolExecutor(max_workers=max_workers) as exe:
-        futures = {exe.submit(_run_one_spec, (data_bytes, config_dict, spec)): i
-                   for i, spec in enumerate(all_specs)}
-        done = 0
-        for fut in as_completed(futures):
-            results, failure = fut.result()
-            done += 1
+    if max_workers == 1:
+        for done, spec in enumerate(all_specs, 1):
+            results, failure = _run_one_spec((data_bytes, config_dict, spec))
             if failure:
                 failure_stats[failure] += 1
             else:
                 rows.extend(results)
             if progress_callback and done % max(1, n_run // 100) == 0:
                 progress_callback(done, n_run)
+    else:
+        with ProcessPoolExecutor(max_workers=max_workers) as exe:
+            futures = {exe.submit(_run_one_spec, (data_bytes, config_dict, spec)): i
+                       for i, spec in enumerate(all_specs)}
+            done = 0
+            for fut in as_completed(futures):
+                results, failure = fut.result()
+                done += 1
+                if failure:
+                    failure_stats[failure] += 1
+                else:
+                    rows.extend(results)
+                if progress_callback and done % max(1, n_run // 100) == 0:
+                    progress_callback(done, n_run)
 
     # 7. Write Parquet
     if output_path is None:
