@@ -99,7 +99,11 @@ export default function ConfigurePage() {
         models: cfg.models,
       },
       constraints: { min_obs: cfg.min_obs },
-      run: { mode: 'sample', sample_size: cfg.sample_size, seed: cfg.seed },
+      run: {
+        mode: (validation?.n_specs ?? Infinity) <= 5000 ? 'full' : 'sample',
+        sample_size: 5000,
+        seed: cfg.seed,
+      },
       focal_coefficients: roles.required_vars.length ? roles.required_vars : roles.independent.slice(0, 3),
     },
   })
@@ -160,9 +164,9 @@ export default function ConfigurePage() {
         {n?.est_runtime_s != null && (
           <span className="muted">· est. {n.est_runtime_s.toFixed(0)} s web preview</span>
         )}
-        {n?.will_sample && (
+        {n?.n_specs != null && n.n_specs > 5000 && (
           <span className="badge badge--info">
-            will sample {n.sample_size?.toLocaleString()} / {n.n_specs?.toLocaleString()}
+            web preview capped at 5,000 of {n.n_specs.toLocaleString()}
           </span>
         )}
         {validating && <span className="muted small">updating…</span>}

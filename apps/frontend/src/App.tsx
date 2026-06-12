@@ -13,6 +13,9 @@ export default function App() {
         <p className="small muted">
           Measure specification-driven variation in regression estimates
         </p>
+        <p className="small muted" style={{ marginTop: '0.15rem', fontStyle: 'italic' }}>
+          For entrepreneurial finance researchers
+        </p>
       </header>
       <hr />
       <StepBar />

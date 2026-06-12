@@ -127,7 +127,7 @@ export default function ResultsPage() {
 
       {/* NSE / SE table */}
       <h2>Non-standard errors</h2>
-      <NseTable predictions={results.predictions} coefficients={coefs} />
+      <NseTable coefficients={coefs} selectedCoef={selectedCoef} />
 
       <hr />
 

@@ -46,6 +46,87 @@ _FACTOR_COLS = [
     "fixed_effects_str",
 ]
 
+_FACTOR_META = [
+    ("dep_na_treatment",     "Treatment of NAs in dependent variable"),
+    ("dep_outlier_str",      "Treatment of outliers in dependent variable"),
+    ("dep_transform",        "Transformation of dependent variable"),
+    ("ind_na_treatment_str", "Treatment of NAs in independent variables"),
+    ("ind_outlier_str",      "Treatment of outliers in independent variables"),
+    ("ind_transform",        "Transformation of independent variables"),
+    ("fixed_effects_str",    "Fixed effects"),
+    ("model_type",           "Estimation model"),
+]
+
+
+def _level_label(factor: str, raw: str) -> str:
+    """Convert a raw factor value to a human-readable label for the results table."""
+    if factor == "dep_na_treatment":
+        return {"omit": "Omit observations", "zero": "Replace NAs with zero"}.get(raw, raw)
+    if factor in ("dep_transform", "ind_transform"):
+        return {"none": "None", "zscore": "Z-standardization",
+                "mean_center": "Mean centering", "log": "Log"}.get(raw, raw)
+    if factor == "model_type":
+        return {"OLS": "OLS", "RLM": "RLM (robust)", "2SLS_IMR": "2SLS with IMR",
+                "2SLS_GR": "2SLS with GR", "Hurdle": "Hurdle (two-part)"}.get(raw, raw)
+    try:
+        obj = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return raw
+    if factor in ("dep_outlier_str", "ind_outlier_str"):
+        if not obj.get("apply", True):
+            return "None (keep as is)"
+        method = str(obj.get("method", "")).capitalize()
+        threshold = obj.get("threshold")
+        return f"{method} at {int(threshold * 100)}%" if threshold is not None else method
+    if factor == "ind_na_treatment_str":
+        return {"omit": "Omit observations", "zero": "Replace NAs with zero"}.get(
+            obj.get("method", "omit"), obj.get("method", raw))
+    if factor == "fixed_effects_str":
+        time = obj.get("time")
+        country = obj.get("country", False)
+        time_label = f"{time.capitalize()} FE" if time else "No time FE"
+        country_label = "with country FE" if country else "no country FE"
+        return f"{time_label}, {country_label}"
+    return raw
+
+
+def _by_factor_level_stats(
+    df: pd.DataFrame, coef_col: str, se_col: str
+) -> list[dict]:
+    """
+    For each design-space factor and each of its observed levels, compute
+    NSE (IQR), mean SE, and ratio — exactly as in the paper's Table 6.
+    """
+    result = []
+    for fac, label in _FACTOR_META:
+        if fac not in df.columns:
+            continue
+        levels = []
+        for raw_val, grp in df.groupby(fac, sort=False):
+            coef_vals = grp[coef_col].dropna()
+            if len(coef_vals) < 2:
+                continue
+            nse = _iqr(coef_vals)
+            se_vals = (grp[se_col].dropna()
+                       if se_col in df.columns else pd.Series(dtype=float))
+            mean_se = float(se_vals.mean()) if len(se_vals) > 0 else None
+            ratio = _safe_div(nse, mean_se)
+            levels.append({
+                "value": str(raw_val),
+                "label": _level_label(fac, str(raw_val)),
+                "nse": round(nse, 2),
+                "se": round(mean_se, 4) if mean_se is not None else None,
+                "ratio": round(ratio, 2) if ratio is not None else None,
+                "n": int(len(coef_vals)),
+            })
+        if levels:
+            result.append({
+                "factor": fac.replace("_str", ""),
+                "label": label,
+                "levels": levels,
+            })
+    return result
+
 
 def _variance_decomp(df: pd.DataFrame, coef_col: str) -> dict[str, float]:
     """
@@ -290,6 +371,7 @@ def aggregate(
 
         var_shares = _variance_decomp(df, coef_col)
         by_factor = _by_factor_iqr(df, coef_col)
+        breakdown = _by_factor_level_stats(df, coef_col, se_col)
 
         coefficients.append({
             "name": name,
@@ -301,6 +383,7 @@ def aggregate(
             "pct_sig": pct_sig,
             "by_factor": by_factor,
             "variance_share": var_shares,
+            "breakdown": breakdown,
         })
 
     # Spec curve for the first focal coefficient

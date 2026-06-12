@@ -79,6 +79,16 @@ export default function UploadPage() {
   return (
     <>
       <h2>Upload dataset</h2>
+      <p className="small" style={{ marginBottom: '0.5rem' }}>
+        <strong>Reference paper: </strong>
+        <a
+          href="https://drive.google.com/file/d/1MyBsm0AGPTR0RNFLc_Ajt8XUFiXmWj3a/view?usp=sharing"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Non-Standard Errors in Entrepreneurial Finance (PDF)
+        </a>
+      </p>
       <p className="small muted">
         Upload a CSV or XLSX file (max {MAX_MB} MB). The file stays on the server for
         the duration of your session.
